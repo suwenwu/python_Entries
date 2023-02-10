@@ -62,8 +62,8 @@ def form1():
 def form2():
     root = tk.Tk()
     root.title("学生管理系统管理页面")
-    width = 700
-    height = 550
+    width = 460
+    height = 380
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     x = int(screen_width / 2 - width / 2)
@@ -72,7 +72,10 @@ def form2():
     root.geometry(size)
     root.resizable(False, False)
 
-    def onclick():
+    def show():
+        pass
+
+    def onclick():  # 打开文件
         path = inspect.getfile(inspect.currentframe()).split("\\")
         path = "\\".join(path[:-1])
         file_name = filedialog.askopenfilename(title="打开我的文件", initialdir=path,
@@ -91,6 +94,90 @@ def form2():
                 row_list.append(c.value)
             TreeViewtree.insert("", i, values=row_list)
             i += 1
+        workbook.close()
+
+    def delete():
+        iid = TreeViewtree.selection()
+        name = TreeViewtree.item(iid[0], "values")[1]
+
+        path = inspect.getfile(inspect.currentframe()).split("\\")
+        path = "\\".join(path[:-1]) + '\\学生信息.xlsx'
+        # file_name是文件的路径名称
+        workbook = openpyxl.load_workbook(path)
+        # 获取第一个sheet表格
+        table = workbook.active
+        max_row_num = table.max_row
+
+        row_n = 2
+        col_n = 2
+        while row_n <= max_row_num:
+            if table.cell(row=row_n, column=col_n).value == name:
+                table.delete_rows(row_n)
+                break
+            else:
+                row_n += 1
+        TreeViewtree.delete(iid[0])
+        workbook.save(filename='学生信息.xlsx')
+        workbook.close()
+
+    def add():
+        add_win = tk.Tk()
+        add_win.title("学院添加")
+        add_win.geometry('710x100+500+400')
+        add_win.resizable(False, False)
+        # 学号
+        tk.Label(add_win, text='学号', font="微软雅黑 13").grid(row=1, column=1)
+        id_ent = tk.Entry(add_win, width=10)
+        id_ent.grid(row=1, column=2)
+        # 姓名
+        tk.Label(add_win, text='姓名', font="微软雅黑 13").grid(row=1, column=3)
+        name_ent = tk.Entry(add_win, width=10)
+        name_ent.grid(row=1, column=4)
+        # 性别
+        tk.Label(add_win, text='性别', font="微软雅黑 13").grid(row=1, column=5)
+        sex_ent = tk.Entry(add_win, width=10)
+        sex_ent.grid(row=1, column=6)
+        # 年龄
+        tk.Label(add_win, text='年龄', font="微软雅黑 13").grid(row=1, column=7)
+        age_ent = tk.Entry(add_win, width=15)
+        age_ent.grid(row=1, column=8)
+        # 手机号
+        tk.Label(add_win, text='手机号', font="微软雅黑 13").grid(row=1, column=9)
+        iphone_ent = tk.Entry(add_win, width=15)
+        iphone_ent.grid(row=1, column=10)
+
+        def add_student():
+            path = inspect.getfile(inspect.currentframe()).split("\\")
+            path = "\\".join(path[:-1]) + '\\学生信息.xlsx'
+            # file_name是文件的路径名称
+            workbook = openpyxl.load_workbook(path)
+            # 获取第一个sheet表格
+            table = workbook.active
+            iid = id_ent.get()
+            name = name_ent.get()
+            sex = sex_ent.get()
+            age = age_ent.get()
+            iphone = iphone_ent.get()
+            info_list = [iid, name, sex, age, iphone]
+            TreeViewtree.insert("", END, values=info_list)
+            row_num = table.max_row
+            for i in range(len(info_list)):
+                table.cell(row=row_num, column=i + 1).value = info_list[i]
+            print(info_list)
+            workbook.save(filename='学生信息.xlsx')
+            workbook.close()
+
+        tk.Button(add_win, text="添加", command=add_student, font="微软雅黑 13").grid(row=2, column=1, padx=10, pady=20,
+                                                                                      sticky='e')
+        tk.Button(add_win, text="退出", command=add_win.destroy, font="微软雅黑 13").grid(row=2, column=2, padx=10,
+                                                                                          pady=20, sticky='w')
+        add_win.mainloop()
+
+    def update():
+        pass
+
+    def find():
+        pass
 
     # Treeview控件
     frame01 = Frame(root)
@@ -123,12 +210,21 @@ def form2():
 
     frame02 = Frame(root)
     frame02.place(x=10, y=240)
-    tk.Label(frame02, text='选择学生名单(txt)', font="微软雅黑 13").grid(row=1, column=0, sticky='e')
+    tk.Label(frame02, text='选择学生名单(Excel)', font="微软雅黑 13").grid(row=1, column=0, sticky='e')
     tk.Button(frame02, text="浏览", command=onclick, font="微软雅黑 13").grid(row=1, column=1, sticky='ns')
-    showname = tk.Label(frame02, text='', font="微软雅黑 13", fg='blue')
+    showname = tk.Label(frame02, text=' ', font="微软雅黑 13", fg='blue')
     showname.grid(row=8, column=0, columnspan=2, padx=30, sticky='ns')
+
+    # 增删改查按钮选项
+    frame03 = Frame(root)
+    frame03.place(x=10, y=300)
+    tk.Button(frame03, text="添加", command=add, font="微软雅黑 13").grid(row=1, column=3, padx=20, sticky='e')
+    tk.Button(frame03, text="删除", command=delete, font="微软雅黑 13").grid(row=1, column=5, padx=20, sticky='e')
+    tk.Button(frame03, text="修改", command=update, font="微软雅黑 13").grid(row=1, column=7, padx=20, sticky='e')
+    tk.Button(frame03, text="退出", command=root.destroy, font="微软雅黑 13").grid(row=1, column=9, padx=20, sticky='e')
+
     root.mainloop()
 
 
 if __name__ == '__main__':
-    form2()
+    form1()
